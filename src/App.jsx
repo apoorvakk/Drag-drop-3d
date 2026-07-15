@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { Physics, RigidBody } from '@react-three/rapier'
-import { Environment } from '@react-three/drei'
+import { Environment, PerspectiveCamera } from '@react-three/drei'
 
 function InteractiveShape({ children, position, colliders }) {
   const ref = useRef()
@@ -43,39 +43,39 @@ function ScreenBounds() {
   const hw = viewport.width / 2   // half width in world units
   const hh = viewport.height / 2  // half height in world units
   const thick = 2                  // wall thickness (thick enough to prevent tunneling)
-  const depth = 20                 // wall depth into Z
+  const depth = 4                // wall depth into Z
 
   return (
     <>
-      {/* Floor — visible, at the bottom edge */}
-      <RigidBody type="fixed" position={[0, -hh, 0]} restitution={0.5} friction={0.8}>
-        <mesh receiveShadow>
+      {/* Floor — tilt slightly away from camera (bottom edge angles out) */}
+      <RigidBody type="fixed" position={[0, -hh - thick / 2.5, 0]} rotation={[-0.3, 0, 0]} restitution={0.5} friction={0.8}>
+        <mesh>
           <boxGeometry args={[viewport.width + thick * 2, thick, depth]} />
-          <meshStandardMaterial color="#a096ba" />
+          <meshStandardMaterial color="#4f2187ff" />
         </mesh>
       </RigidBody>
 
-      {/* Ceiling — invisible, top edge */}
-      <RigidBody type="fixed" position={[0, hh, 0]} restitution={0.4}>
+      {/* Ceiling — tilt slightly away from camera (top edge angles out) */}
+      <RigidBody type="fixed" position={[0, hh, 0]} rotation={[0.15, 0, 0]} restitution={0.4}>
         <mesh visible={false}>
           <boxGeometry args={[viewport.width + thick * 2, thick, depth]} />
           <meshStandardMaterial />
         </mesh>
       </RigidBody>
 
-      {/* Left wall — visible plane */}
-      <RigidBody type="fixed" position={[-hw, 0, 0]} restitution={0.6}>
-        <mesh receiveShadow>
+      {/* Left wall — tilt left edge out of viewport */}
+      <RigidBody type="fixed" position={[-hw * 1.2, 0, 0]} rotation={[0, 0.6, 0]} restitution={0.6}>
+        <mesh>
           <boxGeometry args={[thick, viewport.height + thick * 2, depth]} />
-          <meshStandardMaterial color="#a096ba" />
+          <meshStandardMaterial color="#D1C0E6" />
         </mesh>
       </RigidBody>
 
-      {/* Right wall — visible plane */}
-      <RigidBody type="fixed" position={[hw, 0, 0]} restitution={0.6}>
-        <mesh receiveShadow>
+      {/* Right wall — tilt right edge out of viewport */}
+      <RigidBody type="fixed" position={[hw * 1.2, 0, 0]} rotation={[0, -0.6, 0]} restitution={0.6}>
+        <mesh>
           <boxGeometry args={[thick, viewport.height + thick * 2, depth]} />
-          <meshStandardMaterial color="#a096ba" />
+          <meshStandardMaterial color="#efedf3ff" />
         </mesh>
       </RigidBody>
     </>
@@ -92,7 +92,8 @@ function App() {
         By apoorva
       </div>
 
-      <Canvas shadows camera={{ position: [0, 0, 15], fov: 40 }}>
+      <Canvas shadows>
+        <PerspectiveCamera makeDefault position={[0, 0.5, 9]} rotation={[0, 0, 0]} fov={40} />
         <ambientLight intensity={0.5} />
         <directionalLight
           castShadow
